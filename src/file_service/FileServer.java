@@ -28,7 +28,7 @@ public class FileServer {
                     request.get(b);
                     String fileName = new String(b);
                     System.out.println("file to delete:"+fileName);
-                    File file = new File("ServerFiles/"+fileName);
+                    File file = new File("server files/"+fileName);
                     boolean success = false;
                     if(file.exists()){
                         success = file.delete();
@@ -61,6 +61,27 @@ public class FileServer {
 
                     break;
                 case "R": //rename
+                    byte[] c = new byte[request.remaining()];
+                    request.get(c);
+                    String fullName = new String(c);
+                    String[] parts = fullName.split(";");
+                    String oldName = parts[0];
+                    String newName = parts[1];
+
+                    File oldFile = new File("server files/"+oldName);
+                    File newFile = new File("server files/"+newName);
+
+                    //TODO: match oldFile to an existing file
+                    if (oldFile.renameTo(newFile)) {
+                        System.out.println("File renamed successfully");
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serveChannel.write(code);
+                    } else {
+                        System.out.println("failed to rename file");
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serveChannel.write(code);
+                    }
+                    serveChannel.close();
                     break;
                 case "U": //upload
                     break;
