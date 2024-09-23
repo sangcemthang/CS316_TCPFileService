@@ -9,8 +9,10 @@ import java.nio.channels.SocketChannel;
 public class FileServer {
     public static void main(String[] args) throws Exception{
         int port = 3000;
+
         ServerSocketChannel listenChannel = ServerSocketChannel.open();
         listenChannel.bind(new InetSocketAddress(port));
+
         while (true){
             SocketChannel serveChannel = listenChannel.accept();
             ByteBuffer request = ByteBuffer.allocate(1024);
@@ -41,8 +43,22 @@ public class FileServer {
                         serveChannel.write(code);
                     }
                     serveChannel.close();
+
                     break;
                 case "L": //list
+                    File dir = new File("server files");
+                    File[] fileList = (dir.listFiles());
+
+                    assert fileList != null;
+                    int listLength = fileList.length;
+                    //Checks length of files in directory;
+
+                    for (int i = 0; i <= listLength - 1; i++) {
+                        ByteBuffer list = ByteBuffer.wrap((fileList[i] + "\n").getBytes());
+                        serveChannel.write(list);
+                    }
+                    serveChannel.close();
+
                     break;
                 case "R": //rename
                     break;
