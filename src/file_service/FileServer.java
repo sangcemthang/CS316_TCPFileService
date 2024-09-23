@@ -71,7 +71,7 @@ public class FileServer {
                     File oldFile = new File("server files/"+oldName);
                     File newFile = new File("server files/"+newName);
 
-                    //TODO: match oldFile to an existing file
+                    //renames oldFile to newFile
                     if (oldFile.renameTo(newFile)) {
                         System.out.println("File renamed successfully");
                         ByteBuffer code = ByteBuffer.wrap("S".getBytes());
