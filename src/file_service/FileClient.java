@@ -1,19 +1,17 @@
 package file_service;
 
-import java.io.File;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-    public static void main(String[] args) throws Exception{
-        if(args.length != 2){
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
             System.out.println("Please specify <serverIP> and <serverPort>");
             return;
         }
 
-        FileClient fileClient = new FileClient();
+        SendCommand sendCommand = new SendCommand();
         int serverPort = Integer.parseInt(args[1]);
         String command;
 
@@ -27,7 +25,7 @@ public class FileClient {
                 case "D":
                     System.out.println("please enter the file name");
                     String fileName = keyboard.nextLine();
-                    fileClient.sendCommandAndFile(channel, fileName, command, serverPort, args);
+                    sendCommand.sendFilename(channel, fileName, command, serverPort, args);
 
                     ByteBuffer reply = ByteBuffer.allocate(1);
                     channel.read(reply);
@@ -37,18 +35,16 @@ public class FileClient {
                     reply.get(a);
                     String code = new String(a);
 
-                    if (code.equals("S")){
+                    if (code.equals("S")) {
                         System.out.println("File successfully deleted.");
-                    }
-                    else if (code.equals("F")){
+                    } else if (code.equals("F")) {
                         System.out.println("Failed to delete file.");
-                    }
-                    else {
+                    } else {
                         System.out.println("An unexpected error occurred.");
                     }
                     break;
                 case "L":
-                    fileClient.sendCommand(channel, command, serverPort, args);
+                    sendCommand.send(channel, command, serverPort, args);
 
                     ByteBuffer list = ByteBuffer.allocate(1024);
                     int bytesRead;
@@ -70,8 +66,7 @@ public class FileClient {
                     String newName = keyboard.nextLine();
 
 
-                    fileClient.sendRename(channel, oldName, newName, command, serverPort, args);
-
+                    sendCommand.sendRename(channel, oldName, newName, command, serverPort, args);
                     ByteBuffer renameReply = ByteBuffer.allocate(1);
                     channel.read(renameReply);
                     channel.close();
@@ -80,13 +75,11 @@ public class FileClient {
                     renameReply.get(c);
                     String renameCode = new String(c);
 
-                    if (renameCode.equals("S")){
+                    if (renameCode.equals("S")) {
                         System.out.println("File successfully renamed");
-                    }
-                    else if (renameCode.equals("F")){
+                    } else if (renameCode.equals("F")) {
                         System.out.println("Failed to rename file.");
-                    }
-                    else {
+                    } else {
                         System.out.println("An unexpected error occurred.");
                     }
                     break;
@@ -97,30 +90,7 @@ public class FileClient {
                 default:
                     System.out.println("invalid command");
             }
-        } while(!command.equals("Q"));
+        } while (!command.equals("Q"));
     }
-
-    private void sendCommandAndFile(SocketChannel channel, String fileName, String command, int serverPort, String[] args) throws Exception {
-        ByteBuffer request = ByteBuffer.wrap((command + fileName).getBytes());
-
-        channel.connect(new InetSocketAddress(args[0], serverPort));
-        channel.write(request);
-        channel.shutdownOutput();
-    }
-    private void sendCommand(SocketChannel channel, String command, int serverPort, String[] args) throws Exception {
-        ByteBuffer request = ByteBuffer.wrap((command).getBytes());
-
-        channel.connect(new InetSocketAddress(args[0], serverPort));
-        channel.write(request);
-        channel.shutdownOutput();
-    }
-    private void sendRename(SocketChannel channel, String oldName, String newName, String command, int serverPort, String[] args) throws Exception {
-        ByteBuffer request = ByteBuffer.wrap((command + oldName + ";" + newName).getBytes());
-
-        channel.connect(new InetSocketAddress(args[0], serverPort));
-        channel.write(request);
-        channel.shutdownOutput();
-    }
-
 }
 
