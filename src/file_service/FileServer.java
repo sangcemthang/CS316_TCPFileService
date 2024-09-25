@@ -1,6 +1,7 @@
 package file_service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
@@ -86,6 +87,32 @@ public class FileServer {
                 case "U": //upload
                     break;
                 case "N": //download
+                    byte[] n = new byte[request.remaining()];
+                    request.get(n);
+                    String fileDownload = new String(n);
+                    System.out.println("file to download: "+fileDownload); //delete later
+
+                    File newDownload = new File("server files/" + fileDownload);
+
+                    //delete
+                    if(newDownload.exists()){
+                        System.out.println("success");
+                    } else{
+                        System.out.println("failure");
+                    }
+                    //delete
+
+                    FileInputStream fis = new FileInputStream(newDownload);
+                    byte[] downloadArray = new byte[1024];
+                    int bytesRead;
+
+                    while((bytesRead = fis.read()) != -1) {
+                        ByteBuffer downloadRequest = ByteBuffer.wrap(downloadArray, 0, bytesRead);
+                        serveChannel.write(downloadRequest);
+                    }
+                    fis.close();
+                    serveChannel.shutdownOutput();
+
                     break;
                 default:
                     System.out.println("invalid command");

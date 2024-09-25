@@ -1,5 +1,6 @@
 package file_service;
 
+import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
@@ -86,6 +87,26 @@ public class FileClient {
                 case "U": //upload
                     break;
                 case "N": //download
+                    System.out.println("what is the name of the file you want to download?");
+                    String fileDownload = keyboard.nextLine();
+
+                    sendCommand.sendDownload(channel, fileDownload, command, serverPort, args);
+
+                    FileOutputStream fos = new FileOutputStream(fileDownload);
+
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    int bytesReadDownload;
+
+                    while((bytesReadDownload = channel.read(buffer)) != -1){
+                        byte[] downloadByte = new byte[bytesReadDownload];
+                        buffer.flip();
+                        buffer.get(downloadByte);
+                        fos.write(downloadByte);
+                        buffer.clear();
+                    }
+
+                    fos.close();
+
                     break;
                 default:
                     System.out.println("invalid command");
