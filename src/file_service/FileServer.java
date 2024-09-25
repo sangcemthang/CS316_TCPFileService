@@ -2,43 +2,47 @@ package file_service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class FileServer {
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         int port = 3000;
 
         ServerSocketChannel listenChannel = ServerSocketChannel.open();
         listenChannel.bind(new InetSocketAddress(port));
 
-        while (true){
+        while (true) {
             SocketChannel serveChannel = listenChannel.accept();
             ByteBuffer request = ByteBuffer.allocate(1024);
             int numBytes = serveChannel.read(request);
+
             request.flip();
             //the size of the byte[] should match the number of bytes of the commands
             byte[] a = new byte[1];
             request.get(a);
             String command = new String(a);
-            switch(command){
+
+            switch (command) {
                 case "D": //delete
                     byte[] b = new byte[request.remaining()];
                     request.get(b);
                     String fileName = new String(b);
-                    System.out.println("file to delete:"+fileName);
-                    File file = new File("server files/"+fileName);
+                    System.out.println("file to delete:" + fileName);
+                    File file = new File("server files/" + fileName);
                     boolean success = false;
-                    if(file.exists()){
+
+                    if (file.exists()) {
                         success = file.delete();
                     }
-                    if(success){
+                    if (success) {
                         System.out.println("file deleted successfully");
                         ByteBuffer code = ByteBuffer.wrap("S".getBytes());
                         serveChannel.write(code);
-                    } else{
+                    } else {
                         System.out.println("unable to delete file");
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serveChannel.write(code);
@@ -69,8 +73,8 @@ public class FileServer {
                     String oldName = parts[0];
                     String newName = parts[1];
 
-                    File oldFile = new File("server files/"+oldName);
-                    File newFile = new File("server files/"+newName);
+                    File oldFile = new File("server files/" + oldName);
+                    File newFile = new File("server files/" + newName);
 
                     //renames oldFile to newFile
                     if (oldFile.renameTo(newFile)) {
@@ -85,19 +89,34 @@ public class FileServer {
                     serveChannel.close();
                     break;
                 case "U": //upload
+                    FileOutputStream fos = new FileOutputStream("upload");
+
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    int uploadBytesRead;
+
+                    while ((uploadBytesRead = serveChannel.read(buffer)) != -1) {
+                        byte[] uploadBytes = new byte[uploadBytesRead];
+                        buffer.flip();
+                        buffer.get(uploadBytes);
+                        fos.write(uploadBytes);
+                        buffer.clear();
+                    }
+
+                    fos.close();
                     break;
+
                 case "N": //download
                     byte[] n = new byte[request.remaining()];
                     request.get(n);
                     String fileDownload = new String(n);
-                    System.out.println("file to download: "+fileDownload); //delete later
+                    System.out.println("file to download: " + fileDownload); //delete later
 
                     File newDownload = new File("server files/" + fileDownload);
 
                     //delete
-                    if(newDownload.exists()){
+                    if (newDownload.exists()) {
                         System.out.println("success");
-                    } else{
+                    } else {
                         System.out.println("failure");
                     }
                     //delete
@@ -106,7 +125,7 @@ public class FileServer {
                     byte[] downloadArray = new byte[1024];
                     int bytesRead;
 
-                    while((bytesRead = fis.read()) != -1) {
+                    while ((bytesRead = fis.read()) != -1) {
                         ByteBuffer downloadRequest = ByteBuffer.wrap(downloadArray, 0, bytesRead);
                         serveChannel.write(downloadRequest);
                     }
@@ -114,6 +133,7 @@ public class FileServer {
                     serveChannel.shutdownOutput();
 
                     break;
+
                 default:
                     System.out.println("invalid command");
             }

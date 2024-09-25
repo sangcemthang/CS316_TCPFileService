@@ -25,8 +25,8 @@ public class FileClient {
             switch (command) {
                 case "D":
                     System.out.println("please enter the file name");
-                    String fileName = keyboard.nextLine();
-                    sendCommand.sendFilename(channel, fileName, command, serverPort, args);
+                    String fileToDelete = keyboard.nextLine();
+                    sendCommand.sendFilename(channel, fileToDelete, command, serverPort, args);
 
                     ByteBuffer reply = ByteBuffer.allocate(1);
                     channel.read(reply);
@@ -85,12 +85,17 @@ public class FileClient {
                     }
                     break;
                 case "U": //upload
+                    System.out.println("enter the name of the file to be uploaded");
+                    String fileNameHH = keyboard.nextLine();
+
+                    sendCommand.sendUpload(channel, command, fileNameHH, serverPort, args);
+
                     break;
                 case "N": //download
                     System.out.println("what is the name of the file you want to download?");
                     String fileDownload = keyboard.nextLine();
 
-                    sendCommand.sendDownload(channel, fileDownload, command, serverPort, args);
+                    sendCommand.sendFilename(channel, fileDownload, command, serverPort, args);
 
                     FileOutputStream fos = new FileOutputStream(fileDownload);
 
