@@ -11,6 +11,7 @@ import java.nio.channels.SocketChannel;
 public class FileServer {
     public static void main(String[] args) throws Exception {
         int port = 3000;
+        FileServer fileServer = new FileServer();
 
         ServerSocketChannel listenChannel = ServerSocketChannel.open();
         listenChannel.bind(new InetSocketAddress(port));
@@ -22,17 +23,15 @@ public class FileServer {
 
             request.flip();
             //the size of the byte[] should match the number of bytes of the commands
-            byte[] a = new byte[1];
-            request.get(a);
-            String command = new String(a);
+            byte[] commandByte = new byte[1];
+            request.get(commandByte);
+            String command = new String(commandByte);
 
             switch (command) {
                 case "D": //delete
-                    byte[] b = new byte[request.remaining()];
-                    request.get(b);
-                    String fileName = new String(b);
-                    System.out.println("file to delete:" + fileName);
-                    File file = new File("server files/" + fileName);
+                    String fileNameToDelete = fileServer.getRemainingString(request);
+                    System.out.println("file to delete:" + fileNameToDelete);
+                    File file = new File("server files/" + fileNameToDelete);
                     boolean success = false;
 
                     if (file.exists()) {
@@ -66,10 +65,8 @@ public class FileServer {
 
                     break;
                 case "R": //rename
-                    byte[] c = new byte[request.remaining()];
-                    request.get(c);
-                    String fullName = new String(c);
-                    String[] parts = fullName.split(";");
+                    String nameAndRename = fileServer.getRemainingString(request);
+                    String[] parts = nameAndRename.split(";");
                     String oldName = parts[0];
                     String newName = parts[1];
 
@@ -88,6 +85,7 @@ public class FileServer {
                     }
                     serveChannel.close();
                     break;
+
                 case "U": //upload
                     FileOutputStream fos = new FileOutputStream("upload");
 
@@ -106,12 +104,10 @@ public class FileServer {
                     break;
 
                 case "N": //download
-                    byte[] n = new byte[request.remaining()];
-                    request.get(n);
-                    String fileDownload = new String(n);
-                    System.out.println("file to download: " + fileDownload); //delete later
+                    String fileToDownload = fileServer.getRemainingString(request);
 
-                    File newDownload = new File("server files/" + fileDownload);
+                    System.out.println("file to download: " + fileToDownload); //delete later
+                    File newDownload = new File("server files/" + fileToDownload);
 
                     //delete
                     if (newDownload.exists()) {
@@ -138,5 +134,11 @@ public class FileServer {
                     System.out.println("invalid command");
             }
         }
+    }
+    private String getRemainingString(ByteBuffer request){
+        byte[] bytes = new byte[request.remaining()];
+        request.get(bytes);
+
+        return new String(bytes);
     }
 }
