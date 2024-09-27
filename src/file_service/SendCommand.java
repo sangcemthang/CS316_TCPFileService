@@ -37,7 +37,7 @@ public class SendCommand {
         try (FileInputStream fis = new FileInputStream(file)){
             byte[] fileData = new byte[1024];
             int bytesRead;
-            ByteBuffer request = ByteBuffer.wrap(command.getBytes());
+            ByteBuffer request = ByteBuffer.wrap((command + fileName).getBytes());
             channel.write(request);
 
             while ((bytesRead = fis.read()) != -1){

@@ -87,7 +87,8 @@ public class FileServer {
                     break;
 
                 case "U": //upload
-                    FileOutputStream fos = new FileOutputStream("upload");
+                    String fileToUpload = fileServer.getRemainingString(request);
+                    FileOutputStream fos = new FileOutputStream(fileToUpload);
 
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     int uploadBytesRead;

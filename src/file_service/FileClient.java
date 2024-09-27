@@ -86,9 +86,9 @@ public class FileClient {
                     break;
                 case "U": //upload
                     System.out.println("enter the name of the file to be uploaded");
-                    String fileNameHH = keyboard.nextLine();
+                    String uploadFileName = ("server files/" + keyboard.nextLine());
 
-                    sendCommand.sendUpload(channel, command, fileNameHH, serverPort, args);
+                    sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
 
                     break;
                 case "N": //download
