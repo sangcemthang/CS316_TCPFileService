@@ -102,7 +102,18 @@ public class FileServer {
                         buffer.clear();
                     }
 
+                    File checkUpload = new File(parts2[0]);
+
                     fos.close();
+
+                    if (checkUpload.exists()) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serveChannel.write(code);
+                    }
+                    else {
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serveChannel.write(code);
+                    }
                     serveChannel.close();
                     break;
 
@@ -111,14 +122,6 @@ public class FileServer {
 
                     System.out.println("file to download: " + fileToDownload); //delete later
                     File newDownload = new File("server files/" + fileToDownload);
-
-                    //delete
-                    if (newDownload.exists()) {
-                        System.out.println("success");
-                    } else {
-                        System.out.println("failure");
-                    }
-                    //delete
 
                     FileInputStream fis = new FileInputStream(newDownload);
                     byte[] downloadArray = new byte[1024];

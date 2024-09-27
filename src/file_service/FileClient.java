@@ -66,7 +66,6 @@ public class FileClient {
                     System.out.println("please enter the new name");
                     String newName = keyboard.nextLine();
 
-
                     sendCommand.sendRename(channel, oldName, newName, command, serverPort, args);
                     ByteBuffer renameReply = ByteBuffer.allocate(1);
                     channel.read(renameReply);
@@ -89,6 +88,22 @@ public class FileClient {
                     String uploadFileName = ("server files/" + keyboard.nextLine());
 
                     sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
+
+                    ByteBuffer renameReply2 = ByteBuffer.allocate(1);
+                    channel.read(renameReply2);
+                    channel.close();
+                    renameReply2.flip();
+                    byte[] d = new byte[1];
+                    renameReply2.get(d);
+                    String renameCode2 = new String(d);
+
+                    if (renameCode2.equals("S")) {
+                        System.out.println("File successfully renamed");
+                    } else if (renameCode2.equals("F")) {
+                        System.out.println("Failed to rename file.");
+                    } else {
+                        System.out.println("An unexpected error occurred.");
+                    }
 
                     break;
                 case "N": //download
