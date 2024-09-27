@@ -88,11 +88,12 @@ public class FileServer {
 
                 case "U": //upload
                     String fileToUpload = fileServer.getRemainingString(request);
-                    FileOutputStream fos = new FileOutputStream(fileToUpload);
+                    String[] parts2 = fileToUpload.split(";", 2);
+                    FileOutputStream fos = new FileOutputStream(parts2[0]);
+                    fos.write(parts2[1].getBytes());
 
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     int uploadBytesRead;
-
                     while ((uploadBytesRead = serveChannel.read(buffer)) != -1) {
                         byte[] uploadBytes = new byte[uploadBytesRead];
                         buffer.flip();
@@ -102,6 +103,7 @@ public class FileServer {
                     }
 
                     fos.close();
+                    serveChannel.close();
                     break;
 
                 case "N": //download
