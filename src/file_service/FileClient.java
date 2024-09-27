@@ -1,6 +1,7 @@
 package file_service;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
@@ -12,12 +13,13 @@ public class FileClient {
             return;
         }
 
+        FileClient fileClient = new FileClient();
         SendCommand sendCommand = new SendCommand();
         int serverPort = Integer.parseInt(args[1]);
         String command;
 
         do {
-            System.out.println("\nPlease enter a command");
+            System.out.println("\nPlease enter a command, type Q to quit");
             Scanner keyboard = new Scanner(System.in);
             command = keyboard.nextLine();
             SocketChannel channel = SocketChannel.open();
@@ -28,22 +30,9 @@ public class FileClient {
                     String fileToDelete = keyboard.nextLine();
                     sendCommand.sendFilename(channel, fileToDelete, command, serverPort, args);
 
-                    ByteBuffer reply = ByteBuffer.allocate(1);
-                    channel.read(reply);
-                    channel.close();
-                    reply.flip();
-                    byte[] a = new byte[1];
-                    reply.get(a);
-                    String code = new String(a);
-
-                    if (code.equals("S")) {
-                        System.out.println("File successfully deleted.");
-                    } else if (code.equals("F")) {
-                        System.out.println("Failed to delete file.");
-                    } else {
-                        System.out.println("An unexpected error occurred.");
-                    }
+                    fileClient.getConfirmation(channel);
                     break;
+
                 case "L":
                     sendCommand.send(channel, command, serverPort, args);
 
@@ -60,6 +49,7 @@ public class FileClient {
                     }
                     channel.close();
                     break;
+
                 case "R": //rename
                     System.out.println("please enter the file name to be renamed");
                     String oldName = keyboard.nextLine();
@@ -67,45 +57,16 @@ public class FileClient {
                     String newName = keyboard.nextLine();
 
                     sendCommand.sendRename(channel, oldName, newName, command, serverPort, args);
-                    ByteBuffer renameReply = ByteBuffer.allocate(1);
-                    channel.read(renameReply);
-                    channel.close();
-                    renameReply.flip();
-                    byte[] c = new byte[1];
-                    renameReply.get(c);
-                    String renameCode = new String(c);
-
-                    if (renameCode.equals("S")) {
-                        System.out.println("File successfully renamed");
-                    } else if (renameCode.equals("F")) {
-                        System.out.println("Failed to rename file.");
-                    } else {
-                        System.out.println("An unexpected error occurred.");
-                    }
+                    fileClient.getConfirmation(channel);
                     break;
                 case "U": //upload
                     System.out.println("enter the name of the file to be uploaded");
                     String uploadFileName = ("server files/" + keyboard.nextLine());
 
                     sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
-
-                    ByteBuffer renameReply2 = ByteBuffer.allocate(1);
-                    channel.read(renameReply2);
-                    channel.close();
-                    renameReply2.flip();
-                    byte[] d = new byte[1];
-                    renameReply2.get(d);
-                    String renameCode2 = new String(d);
-
-                    if (renameCode2.equals("S")) {
-                        System.out.println("File successfully renamed");
-                    } else if (renameCode2.equals("F")) {
-                        System.out.println("Failed to rename file.");
-                    } else {
-                        System.out.println("An unexpected error occurred.");
-                    }
-
+                    fileClient.getConfirmation(channel);
                     break;
+
                 case "N": //download
                     System.out.println("what is the name of the file you want to download?");
                     String fileDownload = keyboard.nextLine();
@@ -128,10 +89,29 @@ public class FileClient {
                     fos.close();
 
                     break;
+
                 default:
                     System.out.println("invalid command");
             }
         } while (!command.equals("Q"));
+    }
+
+    private void getConfirmation(SocketChannel channel) throws IOException {
+        ByteBuffer reply = ByteBuffer.allocate(1);
+        channel.read(reply);
+        channel.close();
+        reply.flip();
+        byte[] a = new byte[1];
+        reply.get(a);
+        String code = new String(a);
+
+        if (code.equals("S")) {
+            System.out.println("success");
+        } else if (code.equals("F")) {
+            System.out.println("failure");
+        } else {
+            System.out.println("An unexpected error occurred.");
+        }
     }
 }
 

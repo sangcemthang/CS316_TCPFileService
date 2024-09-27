@@ -47,8 +47,8 @@ public class FileServer {
                         serveChannel.write(code);
                     }
                     serveChannel.close();
-
                     break;
+
                 case "L": //list
                     File dir = new File("server files");
                     File[] fileList = (dir.listFiles());
@@ -62,8 +62,8 @@ public class FileServer {
                         serveChannel.write(list);
                     }
                     serveChannel.close();
-
                     break;
+
                 case "R": //rename
                     String nameAndRename = fileServer.getRemainingString(request);
                     String[] parts = nameAndRename.split(";");
@@ -121,7 +121,7 @@ public class FileServer {
                     String fileToDownload = fileServer.getRemainingString(request);
 
                     System.out.println("file to download: " + fileToDownload); //delete later
-                    File newDownload = new File("server files/" + fileToDownload);
+                    File newDownload = new File(fileToDownload);
 
                     FileInputStream fis = new FileInputStream(newDownload);
                     byte[] downloadArray = new byte[1024];
