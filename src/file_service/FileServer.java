@@ -127,7 +127,7 @@ public class FileServer {
                     byte[] downloadArray = new byte[1024];
                     int bytesRead;
 
-                    while ((bytesRead = fis.read()) != -1) {
+                    while ((bytesRead = fis.read(downloadArray)) != -1) {
                         ByteBuffer downloadRequest = ByteBuffer.wrap(downloadArray, 0, bytesRead);
                         serveChannel.write(downloadRequest);
                     }
