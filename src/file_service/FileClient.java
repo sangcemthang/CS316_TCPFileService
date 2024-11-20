@@ -5,22 +5,26 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FileClient {
+    public static FileClient fileClient = new FileClient();
+    public static SendCommand sendCommand = new SendCommand();
+    public static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.println("Please specify <serverIP> and <serverPort>");
             return;
         }
 
-        FileClient fileClient = new FileClient();
-        SendCommand sendCommand = new SendCommand();
+
         int serverPort = Integer.parseInt(args[1]);
         String command;
+        ExecutorService es = Executors.newFixedThreadPool(1);
 
         do {
             System.out.println("\nPlease enter a command, type Q to quit");
-            Scanner keyboard = new Scanner(System.in);
             command = keyboard.nextLine();
             SocketChannel channel = SocketChannel.open();
 
@@ -60,11 +64,8 @@ public class FileClient {
                     fileClient.getConfirmation(channel);
                     break;
                 case "U": //upload
-                    System.out.println("enter the name of the file to be uploaded");
-                    String uploadFileName = ("server files/" + keyboard.nextLine());
+                    es.submit(new Upload(channel, command, serverPort, args));
 
-                    sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
-                    fileClient.getConfirmation(channel);
                     break;
 
                 case "N": //download
@@ -94,6 +95,31 @@ public class FileClient {
                     System.out.println("invalid command");
             }
         } while (!command.equals("Q"));
+    }
+
+    public static class Upload implements Runnable{
+        SocketChannel channel;
+        String command;
+        int serverPort;
+        String[] args;
+
+        public Upload(SocketChannel channel, String command, int serverPort, String[] args){
+            this.channel = channel;
+            this.command = command;
+            this.serverPort = serverPort;
+            this.args = args;
+        }
+
+        public void run() {
+            System.out.println("enter the name of the file to be uploaded");
+            String uploadFileName = ("server files/" + keyboard.nextLine());
+            try {
+                sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
+                fileClient.getConfirmation(channel);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void getConfirmation(SocketChannel channel) throws IOException {
