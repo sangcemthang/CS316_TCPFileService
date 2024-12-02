@@ -43,14 +43,14 @@ public class FileClient {
                         list.flip();
                         list.get(b);
                         String listString = new String(b);
-                        System.out.println(listString);//.substring(13, listString.length()-1));
+                        System.out.println(listString);
 
                         list.clear();
                     }
                     channel.close();
                     break;
 
-                case "R": //rename
+                case "R":
                     System.out.println("please enter the file name to be renamed");
                     String oldName = keyboard.nextLine();
                     System.out.println("please enter the new name");
@@ -59,39 +59,52 @@ public class FileClient {
                     sendCommand.sendRename(channel, oldName, newName, command, serverPort, args);
                     fileClient.getConfirmation(channel);
                     break;
-                case "U": //upload
-                    System.out.println("enter the name of the file to be uploaded");
-                    String uploadFileName = ("server files/" + keyboard.nextLine());
 
-                    sendCommand.sendUpload(channel, command, uploadFileName, serverPort, args);
-                    fileClient.getConfirmation(channel);
+                case "U":
+                    System.out.println("Enter the name of the file to be uploaded");
+                    String uploadFileName = "server files/" + keyboard.nextLine();
+
+                    String finalCommand1 = command;
+                    new Thread(() -> {
+                        try {
+                            sendCommand.sendUpload(channel, finalCommand1, uploadFileName, serverPort, args);
+                            fileClient.getConfirmation(channel);
+                        } catch (Exception e) {
+                            System.err.println("Error during upload: " + e.getMessage());
+                        }
+                    }).start();
                     break;
 
-                case "N": //download
-                    System.out.println("what is the name of the file you want to download?");
+                case "N":
+                    System.out.println("What is the name of the file you want to download?");
                     String fileDownload = keyboard.nextLine();
 
-                    sendCommand.sendFilename(channel, fileDownload, command, serverPort, args);
+                    String finalCommand = command;
+                    new Thread(() -> {
+                        try {
+                            sendCommand.sendFilename(channel, fileDownload, finalCommand, serverPort, args);
 
-                    FileOutputStream fos = new FileOutputStream(fileDownload);
+                            try (FileOutputStream fos = new FileOutputStream(fileDownload)) {
+                                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                                int bytesReadDownload;
 
-                    ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    int bytesReadDownload;
-
-                    while((bytesReadDownload = channel.read(buffer)) != -1){
-                        byte[] downloadByte = new byte[bytesReadDownload];
-                        buffer.flip();
-                        buffer.get(downloadByte);
-                        fos.write(downloadByte);
-                        buffer.clear();
-                    }
-
-                    fos.close();
-
+                                while ((bytesReadDownload = channel.read(buffer)) != -1) {
+                                    byte[] downloadByte = new byte[bytesReadDownload];
+                                    buffer.flip();
+                                    buffer.get(downloadByte);
+                                    fos.write(downloadByte);
+                                    buffer.clear();
+                                }
+                            }
+                            System.out.println("File downloaded successfully: " + fileDownload);
+                        } catch (Exception e) {
+                            System.err.println("Error during download: " + e.getMessage());
+                        }
+                    }).start();
                     break;
 
                 default:
-                    System.out.println("invalid command");
+                    System.out.println("Invalid command");
             }
         } while (!command.equals("Q"));
     }
@@ -106,12 +119,13 @@ public class FileClient {
         String code = new String(a);
 
         if (code.equals("S")) {
-            System.out.println("success");
+            System.out.println("Success");
         } else if (code.equals("F")) {
-            System.out.println("failure");
+            System.out.println("Failure");
         } else {
             System.out.println("An unexpected error occurred.");
         }
     }
 }
+
 
